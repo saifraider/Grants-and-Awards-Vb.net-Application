@@ -1,0 +1,406 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+Public Class View_monthly_report
+    Dim connectionString As String
+    Dim Queryy As String
+
+
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+    Private Sub View_monthly_report_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select Convert(nvarchar(50),DATENAME(MONTH, Notice_Date))+'-'+Convert(nvarchar(50),DATENAME(YEAR, Notice_Date)) as Time_Period, SUM(Current_Action_Amount) AS Total_Amount FROM merged_data_table where Notice_Date between '2014-07-01' and '2015-06-30' GROUP BY DATENAME(month, Notice_Date), DATENAME(YEAR, Notice_Date) order by DATENAME(YEAR, Notice_Date),DATEPART(MONTH,CAST(DATENAME(month, Notice_Date)+ ' 1900' AS DATETIME)) asc"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select Convert(nvarchar(50),DATENAME(MONTH, Notice_Date))+'-'+Convert(nvarchar(50),DATENAME(YEAR, Notice_Date)) as Time_Period, SUM(Current_Action_Amount) AS Total_Amount FROM merged_data_table where Notice_Date between '2015-07-01' and '2016-06-30' GROUP BY DATENAME(month, Notice_Date), DATENAME(YEAR, Notice_Date) order by DATENAME(YEAR, Notice_Date),DATEPART(MONTH,CAST(DATENAME(month, Notice_Date)+ ' 1900' AS DATETIME)) asc"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView2.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select Convert(nvarchar(50),DATENAME(MONTH, Notice_Date))+'-'+Convert(nvarchar(50),DATENAME(YEAR, Notice_Date)) as Time_Period, SUM(Current_Action_Amount) AS Total_Amount FROM merged_data_table where Notice_Date between '2013-07-01' and '2014-06-30' GROUP BY DATENAME(month, Notice_Date), DATENAME(YEAR, Notice_Date) order by DATENAME(YEAR, Notice_Date),DATEPART(MONTH,CAST(DATENAME(month, Notice_Date)+ ' 1900' AS DATETIME)) asc"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView3.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    'shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Me.Hide()
+        startup.Show()
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Application.Exit()
+
+    End Sub
+
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Chart1.Visible = True
+        Button5.Visible = True
+        Dim dgv As DataGridView = DataGridView1
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        Dim sum As Integer = 0
+        For r As Integer = 1 To dgv.RowCount
+
+            Dim Xvalue As String = TryCast(dgv.Rows(r - 1).Cells(0).Value, String)
+            Dim YValue As Decimal = dgv.Rows(r - 1).Cells(1).Value
+            sum = sum + YValue
+            Me.Chart1.Series("FY15").Points.AddXY(Xvalue.Substring(0, 3), YValue)
+            'Me.Chart1.Series("Accumulative").Points.AddXY(Xvalue, sum)
+
+        Next
+
+        Chart1.Series("FY15").ToolTip = "Amount = #VALY{C}"
+
+
+        Dim dgv1 As DataGridView = DataGridView2
+        Dim columnsCount1 As Integer = DataGridView2.Columns.Count
+        Dim sum1 As Integer = 0
+        For r As Integer = 1 To dgv1.RowCount
+
+            Dim Xvalue As String = TryCast(dgv1.Rows(r - 1).Cells(0).Value, String)
+            Dim YValue As Decimal = dgv1.Rows(r - 1).Cells(1).Value
+            sum = sum + YValue
+            Me.Chart1.Series("FY16").Points.AddXY("", YValue)
+            'Me.Chart1.Series("Accumulative").Points.AddXY(Xvalue, sum)
+
+        Next
+
+        'MsgBox(DataGridView2.Columns.Count.ToString)
+        'For i As Integer = 1 To DataGridView2.Columns.Count
+        '    Dim z As String
+        '    z = DataGridView2.Columns(i - 1).Name
+        '    MsgBox(z.ToString)
+        'Next
+
+        Chart1.Series("FY16").ToolTip = "Amount = #VALY{C}"
+
+        Dim dgv2 As DataGridView = DataGridView3
+        Dim columnsCount2 As Integer = DataGridView3.Columns.Count
+        Dim sum2 As Integer = 0
+        For r As Integer = 1 To dgv2.RowCount
+
+            Dim Xvalue As String = TryCast(dgv2.Rows(r - 1).Cells(0).Value, String)
+            Dim YValue As Decimal = dgv2.Rows(r - 1).Cells(1).Value
+            sum = sum + YValue
+            Me.Chart1.Series("FY14").Points.AddXY("", YValue)
+            'Me.Chart1.Series("Accumulative").Points.AddXY(Xvalue, sum)
+
+        Next
+        Chart1.Series("FY14").ToolTip = "Amount = #VALY{C}"
+
+    End Sub
+
+    Private Sub FolderBrowserDialog1_HelpRequest(sender As Object, e As EventArgs) Handles FolderBrowserDialog1.HelpRequest
+
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim folderDlg As New FolderBrowserDialog
+        folderDlg.ShowDialog()
+        Dim path As String
+        path = folderDlg.SelectedPath
+        'MsgBox(path.ToString)
+        Chart1.SaveImage(path + "\Monthly_Report.png", System.Drawing.Imaging.ImageFormat.Png)
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView2
+
+
+        Dim columnsCount As Integer = DataGridView2.Columns.Count
+        For Each column In DataGridView2.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    'shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Chart1_Click(sender As Object, e As EventArgs) Handles Chart1.Click
+
+    End Sub
+
+    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    'shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+End Class

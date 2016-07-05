@@ -1,0 +1,371 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+Public Class View_Department_Amount
+    Dim connectionString As String
+    Dim Queryy As String
+
+
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
+    End Sub
+
+    Private Sub View_Department_Amount_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+    End Sub
+
+    Private Sub RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton1.CheckedChanged
+        Dim conn As New SqlConnection(connectionString)
+        If RadioButton1.Checked Then
+
+
+            Dim strSQL As String = "select distinct Grant_Department from PI_Department_Mapping"
+            Dim da As New SqlDataAdapter(strSQL, conn)
+            Dim ds As New DataSet
+            da.Fill(ds, "PI_Department_Mapping")
+
+            With ComboBox1
+                .DataSource = ds.Tables("PI_Department_Mapping")
+                .DisplayMember = "Grant_Department"
+                .ValueMember = ""
+                .SelectedIndex = 0
+            End With
+
+        End If
+
+        If RadioButton2.Checked Then
+
+
+            Dim strSQL As String = "select distinct NIH_Department from PI_Department_Mapping"
+            Dim da As New SqlDataAdapter(strSQL, conn)
+            Dim ds As New DataSet
+            da.Fill(ds, "PI_Department_Mapping")
+
+            With ComboBox1
+                .DataSource = ds.Tables("PI_Department_Mapping")
+                .DisplayMember = "NIH_Department"
+                .ValueMember = ""
+                .SelectedIndex = 0
+            End With
+
+        End If
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If RadioButton1.Checked Then
+            If RadioButton4.Checked Then
+
+                DataGridView1.DataSource = Nothing
+                DataGridView1.Visible = True
+                Button3.Visible = True
+                Label1.Visible = False
+                Label2.Visible = False
+
+                If ComboBox1.Text.ToString.EndsWith("Clinical Trials") Then
+
+
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select dm.PI_Name, dm.Grant_Department,sum(cd.Current_Action_Amount) AS Action_Amount from PI_Department_mapping dm inner join CleanDataView cd on cd.Department = dm.Grant_Department and cd.PI_Name = dm.PI_Name and dm.Grant_Department = " + "'" + ComboBox1.Text + "'" + "  group by dm.PI_Name,dm.Grant_Department order by dm.PI_Name"
+
+                            cmd.CommandType = CommandType.Text
+                            Using sda As New SqlDataAdapter(cmd)
+                                Using dt As New DataTable()
+                                    sda.Fill(dt)
+                                    DataGridView1.DataSource = dt
+                                End Using
+                            End Using
+                        End Using
+                    End Using
+                Else
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select dm.PI_Name, dm.Grant_Department,sum(cd.Current_Action_Amount) as Action_Amount from PI_Department_mapping dm inner join CleanDataView cd on cd.Department = dm.Grant_Department and cd.PI_Name = dm.PI_Name and dm.Grant_Department = " + "'" + ComboBox1.Text + "'" + "  group by dm.PI_Name,dm.Grant_Department order by dm.PI_Name"
+
+                            cmd.CommandType = CommandType.Text
+                            Using sda As New SqlDataAdapter(cmd)
+                                Using dt As New DataTable()
+                                    sda.Fill(dt)
+                                    DataGridView1.DataSource = dt
+                                End Using
+                            End Using
+                        End Using
+                    End Using
+                End If
+            End If
+
+            If RadioButton3.Checked Then
+                DataGridView1.Visible = False
+                Button3.Visible = False
+                Label1.Visible = True
+                Label2.Visible = True
+
+                If ComboBox1.Text.ToString.EndsWith("Clinical Trials") Then
+
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select sum(Action_Amount) from GrantClinicalTotal where Grant_Department =" + "'" + ComboBox1.Text + "'" + " group by Grant_Department"
+
+                            cmd.CommandType = CommandType.Text
+
+                            Try
+                                con.Open()
+                                Dim a As String
+                                a = Convert.ToString(cmd.ExecuteScalar())
+                                If a = "" Then
+                                    Label1.Text = 0.00
+                                Else
+                                    Label1.Text = a
+                                End If
+
+
+                                'Label1.Text = Convert.ToString(cmd.ExecuteScalar())
+                            Catch ex As Exception
+                                Console.WriteLine(ex.Message)
+                            End Try
+                        End Using
+                    End Using
+
+                Else
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select sum(Action_Amount) from GrantnonClinicalTotal where Grant_Department =" + "'" + ComboBox1.Text + "'" + " group by Grant_Department"
+
+                            cmd.CommandType = CommandType.Text
+
+                            Try
+                                con.Open()
+
+                                Dim a As String
+                                a = Convert.ToString(cmd.ExecuteScalar())
+                                If a = "" Then
+                                    Label1.Text = 0.00
+                                Else
+                                    Label1.Text = a
+                                End If
+
+                                'Label1.Text = Convert.ToString(cmd.ExecuteScalar())
+                            Catch ex As Exception
+                                Console.WriteLine(ex.Message)
+                            End Try
+                        End Using
+                    End Using
+                End If
+            End If
+
+
+        End If
+
+        If RadioButton2.Checked Then
+            If RadioButton4.Checked Then
+                DataGridView1.DataSource = Nothing
+                DataGridView1.Visible = True
+                Button3.Visible = True
+                Label1.Visible = False
+                Label2.Visible = False
+                If ComboBox1.Text.ToString.EndsWith("Clinical Trials") Then
+
+
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select dm.PI_Name, dm.NIH_Department,sum(cd.Current_Action_Amount) as Action_Amount from PI_Department_mapping dm inner join CleanDataView cd on cd.Department = dm.NIH_Department and cd.PI_Name = dm.PI_Name and dm.NIH_Department = " + "'" + ComboBox1.Text + "'" + "  group by dm.PI_Name,dm.NIH_Department order by dm.PI_Name"
+
+                            cmd.CommandType = CommandType.Text
+                            Using sda As New SqlDataAdapter(cmd)
+                                Using dt As New DataTable()
+                                    sda.Fill(dt)
+                                    DataGridView1.DataSource = dt
+                                End Using
+                            End Using
+                        End Using
+                    End Using
+                Else
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select dm.PI_Name, dm.NIH_Department,sum(cd.Current_Action_Amount) as Action_amount from PI_Department_mapping dm inner join CleanDataView cd on cd.Department = dm.NIH_Department and cd.PI_Name = dm.PI_Name and dm.NIH_Department = " + "'" + ComboBox1.Text + "'" + "  group by dm.PI_Name,dm.NIH_Department order by dm.PI_Name"
+
+                            cmd.CommandType = CommandType.Text
+                            Using sda As New SqlDataAdapter(cmd)
+                                Using dt As New DataTable()
+                                    sda.Fill(dt)
+                                    DataGridView1.DataSource = dt
+
+                                End Using
+                            End Using
+                        End Using
+                    End Using
+                End If
+            End If
+
+            If RadioButton3.Checked Then
+                DataGridView1.Visible = False
+                Button3.Visible = False
+                Label1.Visible = True
+                Label2.Visible = True
+                If ComboBox1.Text.ToString.EndsWith("Clinical Trials") Then
+
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select sum(Action_Amount) from NIHClinicalTotal where NIH_Department =" + "'" + ComboBox1.Text + "'" + " group by NIH_Department"
+
+                            cmd.CommandType = CommandType.Text
+
+                            Try
+                                con.Open()
+                                Dim a As String
+                                a = Convert.ToString(cmd.ExecuteScalar())
+                                If a = "" Then
+                                    Label1.Text = 0.00
+                                Else
+                                    Label1.Text = a
+                                End If
+
+                                'Label1.Text = Convert.ToString(cmd.ExecuteScalar())
+                            Catch ex As Exception
+                                Console.WriteLine(ex.Message)
+                            End Try
+                        End Using
+                    End Using
+
+                Else
+                    Using con As New SqlConnection(connectionString)
+                        Using cmd As SqlCommand = con.CreateCommand()
+                            cmd.CommandText = "select sum(Action_Amount) from NIHnonClinicalTotal where NIH_Department =" + "'" + ComboBox1.Text + "'" + " group by NIH_Department"
+
+                            cmd.CommandType = CommandType.Text
+
+                            Try
+                                con.Open()
+
+                                Dim a As String
+                                a = Convert.ToString(cmd.ExecuteScalar())
+                                If a = "" Then
+                                    Label1.Text = 0.00
+                                Else
+                                    Label1.Text = a
+                                End If
+
+                                'Label1.Text = Convert.ToString(cmd.ExecuteScalar())
+                            Catch ex As Exception
+                                Console.WriteLine(ex.Message)
+                            End Try
+                        End Using
+                    End Using
+                End If
+            End If
+
+
+        End If
+
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        startup.Show()
+        Me.Close()
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
+
+    End Sub
+End Class

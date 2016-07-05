@@ -1,0 +1,712 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+
+Public Class NIH_Grant_Department_Report
+    Dim connectionString As String
+    Dim Queryy As String
+
+
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+
+    Private Sub NIH_Grant_Department_Report_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+
+    End Sub
+
+    Private Sub RadioButton3_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton3.CheckedChanged
+
+        If RadioButton3.Checked Then
+            CheckBox1.Checked = False
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from Cleandata123 where Department Like '%Trials' order by Department"
+                        cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.Grant_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department Like '%Trials' order by NIH_Department"
+                        cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.NIH_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+
+    End Sub
+
+    Private Sub RadioButton4_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton4.CheckedChanged
+
+        If RadioButton4.Checked Then
+            CheckBox1.Checked = False
+
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from cleandata123 where Department not Like '%Trials' order by department"
+                        cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.Grant_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department not Like '%Trials' order by NIH_Department"
+                        cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.NIH_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+
+    End Sub
+
+    Private Sub RadioButton5_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton5.CheckedChanged
+
+        If RadioButton5.Checked Then
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from cleandata123 order by department"
+                        cmd.CommandText = "Select distinct Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dd order by Grant_Department"
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        cmd.CommandText = "Select distinct NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dd order by NIH_Department"
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+
+    End Sub
+
+    Private Sub RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton1.CheckedChanged
+        If RadioButton3.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 where Department Like '%Trials' order by Department"
+                    cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.Grant_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton4.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 where Department not Like '%Trials' order by department"
+                    cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.Grant_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton5.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 order by department"
+                    cmd.CommandText = "Select distinct Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dd order by Grant_Department"
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+    End Sub
+
+    Private Sub RadioButton2_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton2.CheckedChanged
+        If RadioButton3.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department Like '%Trials' order by NIH_Department"
+                    cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.NIH_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton4.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department not Like '%Trials' order by NIH_Department"
+                    cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.NIH_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton5.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    cmd.CommandText = "Select distinct NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dd order by NIH_Department"
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        Dim department_parameter As String
+        Dim itemChecked1 As Object
+        Dim check1 As Integer
+        Dim check21 As Integer
+        Dim correct1 As String
+        Dim errorCheck1() As String
+        check21 = 0
+        correct1 = ""
+
+        Dim strtdate As String
+        Dim enddate As String
+        Dim insert_date As String
+
+        If CheckedListBox1.CheckedItems.Count < 1 Then
+            MsgBox("You must check at least one Department.")
+            Return
+        End If
+
+        strtdate = DateTimePicker1.Value.ToString("yyyy-MM-dd")
+        enddate = DateTimePicker2.Value.ToString("yyyy-MM-dd")
+
+        If DateTimePicker1.Value > DateTimePicker2.Value Then
+            MsgBox("End Date cannot be smaller than start date")
+            Return
+        End If
+
+        insert_date = " cd.Notice_Date between @noticestartdate and @noticeenddate and "
+
+
+        department_parameter = "("
+        For Each itemChecked1 In CheckedListBox1.CheckedItems
+            check1 = 1
+            check21 = 0
+            If itemChecked1.ToString.IndexOf("'") > 0 Then
+                check21 = 1
+                'MsgBox(itemChecked1.ToString)
+                errorCheck1 = itemChecked1.ToString.Split("'")
+                For Each letter In errorCheck1
+                    correct1 = correct1 + letter + "''"
+                Next
+                correct1 = correct1.Substring(0, correct1.LastIndexOf("''"))
+            End If
+            If check21 = 1 Then
+                department_parameter = department_parameter + "'" + correct1 + "'" + ", "
+            Else
+                department_parameter = department_parameter + "'" + itemChecked1.ToString + "'" + ", "
+            End If
+
+        Next
+        If check1 = 1 Then
+
+            department_parameter = department_parameter.Substring(0, department_parameter.LastIndexOf(","))
+            department_parameter = department_parameter + ")"
+
+
+        End If
+
+
+        'MsgBox(department_parameter)
+
+        If RadioButton6.Checked Then
+            If RadioButton1.Checked Then
+
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select * from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and  dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt order by Grant_Department,PI_Name  "
+                    Queryy = "select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and  " + insert_date + "cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in  " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number like '51%' and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name "
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select * from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and  dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt order by Grant_Department,PI_Name  "
+                    Queryy = "select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and " + insert_date + " cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in  " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number not like '51%'  and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name "
+
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select * from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name  and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt order by Grant_Department,PI_Name  "
+                    Queryy = "select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in  " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department  and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name "
+
+                End If
+
+                'Grant department view by PI
+                'Queryy = "select * from (select PI_Name ,Department , SUM(Current_Action_Amount) as Amount from cleandata123 where department in " + department_parameter + " group by Department, PI_Name) As Dt order by Department,PI_Name"
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                'NIH department view by PI
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + " ) and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name order by dm.NIH_Department,cd.PI_Name"
+                    Queryy = "select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name  and  cd.Account_Number like '51%' and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number like '51%' and " + insert_date + " dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name "
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + " ) and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name order by dm.NIH_Department,cd.PI_Name"
+                    Queryy = "select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name  and  cd.Account_Number not like '51%' and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number not like '51%' and " + insert_date + "  dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name "
+
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + " ) and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name order by dm.NIH_Department,cd.PI_Name"
+                    Queryy = "select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and " + insert_date + " dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name "
+
+                End If
+
+                'Queryy = "select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in" + department_parameter + ") and dm.NIH_Department in" + department_parameter + " group by dm.NIH_Department,cd.PI_Name order by dm.NIH_Department,cd.PI_Name"
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+
+        End If
+
+
+        If RadioButton7.Checked Then
+            If RadioButton1.Checked Then
+                'Grant department view by Department
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select Grant_Department , sum(Amount) as amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number like '51%' and  dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department order by Grant_Department"
+                    Queryy = "select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number like '51%' and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department order by Grant_Department"
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select Grant_Department , sum(Amount) as amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number not like '51%' and  dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department order by Grant_Department"
+                    Queryy = "select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number not like '51%' and " + insert_date + "dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department order by Grant_Department"
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select Grant_Department , sum(Amount) as amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department order by Grant_Department"
+                    Queryy = "select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and " + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and " + insert_date + "dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department order by Grant_Department"
+                End If
+
+                'Queryy = "select Department, sum(Amount) as Amount from (select PI_Name ,Department , SUM(Current_Action_Amount) as Amount from cleandata123 where department in " + department_parameter + "group by Department, PI_Name) As Dt group by Department"
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                'Queryy = "select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department"
+                'NIH department view by Department
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department"
+                    Queryy = "select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number like '51%' and " + insert_date + " dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department order by NIH_Department"
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department"
+                    Queryy = "select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number not like '51%' and " + insert_date + " dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department order by NIH_Department"
+
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department"
+                    Queryy = "select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name  and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department  and " + insert_date + " dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department order by NIH_Department"
+
+                End If
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+
+        If RadioButton8.Checked Then
+            If RadioButton1.Checked Then
+
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select sum(Amount ) as amount from ( select Grant_Department , sum(Amount) as Amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department ) dt2"
+                    Queryy = "select sum(amount) as Amount from ( select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number  like '51%' and " + insert_date + "dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department) dt1"
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select sum(Amount ) as amount from ( select Grant_Department , sum(Amount) as Amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.Account_Number not like '51%' and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department ) dt2"
+                    Queryy = "select sum(amount) as Amount from ( select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and cd.Account_Number not like '51%' and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department) dt1"
+
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select sum(Amount ) as amount from ( select Grant_Department , sum(Amount) as Amount from (select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name not in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name Union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name  and dm.Grant_Department = cd.Department and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.Grant_Department in " + department_parameter + " and dm.PI_Name in (select PI_Name from pi_exceptions)) and dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name) dt group by Grant_Department ) dt2"
+                    Queryy = "select sum(amount) as Amount from ( select Grant_department, sum (amount) as amount from ( select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_mapping dm on dm.PI_Name = cd.PI_Name  and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from Grant_mapping dm where dm.Grant_Department in " + department_parameter + ") group by dm.Grant_Department,cd.PI_Name union select cd.PI_Name,dm.Grant_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join Grant_Exception dm on dm.PI_Name = cd.PI_Name and dm.Grant_Department = cd.Department and " + insert_date + " dm.Grant_Department in " + department_parameter + " group by dm.Grant_Department,cd.PI_Name ) dt group by Grant_Department) dt1"
+
+                End If
+
+                'Queryy = "select Sum(Amount) as Total from (select PI_Name ,Department , SUM(Current_Action_Amount) as Amount from cleandata123 where department in " + department_parameter + " group by Department, PI_Name) As Dt"
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                'Queryy = "select sum(amount) as amount from (select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department) as dt2"
+
+
+                If RadioButton3.Checked Then
+                    'Queryy = "select sum(amount) as amount from (select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and  cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department) as dt2"
+                    Queryy = "select sum(amount) as Amount from (  select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number like '51%' and " + insert_date + "  dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department ) dt1"
+                End If
+                If RadioButton4.Checked Then
+                    'Queryy = "select sum(amount) as amount from (select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not like '51%' and  cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department) as dt2"
+                    Queryy = "select sum(amount) as Amount from (  select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name and  cd.Account_Number not  like '51%' and " + insert_date + "cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and cd.Account_Number not like '51%' and " + insert_date + "  dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department ) dt1"
+
+                End If
+                If RadioButton5.Checked Then
+                    'Queryy = "select sum(amount) as amount from (select NIH_Department, sum(amount) as amount from (select cd.PI_Name,dm.NIH_Department,sum(cd.Current_Action_Amount) as Amount from cleandata123 cd inner join Almost_PI_Department_Mapping dm on dm.PI_Name = cd.PI_Name and  cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where dm.NIH_Department in " + department_parameter + ") and dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name) as dt group by NIH_Department) as dt2"
+                    Queryy = "select sum(amount) as Amount from (  select NIH_Department, sum (amount) as amount from ( select cd.PI_Name,dm.NIH_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIH_mapping dm on dm.PI_Name = cd.PI_Name  and" + insert_date + " cd.PI_Name in (select distinct dm.PI_Name from NIH_mapping dm where dm.NIH_Department in " + department_parameter + ") group by dm.NIH_Department,cd.PI_Name union select cd.PI_Name,dm.NIh_Department ,sum(cd.Current_Action_Amount) as Amount from merged_data_table cd inner join NIh_exception dm on dm.PI_Name = cd.PI_Name and dm.NIH_Department = cd.Department and " + insert_date + "  dm.NIH_Department in " + department_parameter + " group by dm.NIH_Department,cd.PI_Name  ) dt group by NIh_Department ) dt1"
+
+
+                End If
+
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'MsgBox(Queryy)
+
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+    End Sub
+
+    Private Sub RadioButton6_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton6.CheckedChanged
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    'shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Me.Hide()
+        startup.Show()
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Me.Hide()
+        Application.Exit()
+
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        If CheckBox1.Checked Then
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+End Class

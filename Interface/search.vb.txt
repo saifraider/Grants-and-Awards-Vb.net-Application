@@ -1,0 +1,243 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+Public Class search
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+    Dim connectionString As String
+    Dim Queryy As String
+
+    Private Sub search_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString= "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+        Dim conn As New SqlConnection(connectionString)
+        conn.Open()
+        Dim cmd As New SqlCommand("select distinct PI_Name from Almost_PI_Department_mapping", conn)
+        Dim ds As New DataSet
+        Dim da As New SqlDataAdapter(cmd)
+        Dim lst As New List(Of String)
+        Dim col As New AutoCompleteStringCollection
+        Try
+            Dim dr = cmd.ExecuteReader()
+            While dr.Read()
+                lst.Add(dr("PI_Name").ToString())
+            End While
+            dr.Close()
+        Catch ex As SqlException
+            ' Do some logging or something. 
+            MessageBox.Show("There was an error accessing your data. DETAIL: " & ex.ToString())
+        End Try
+        col.AddRange(lst.ToArray)
+
+
+        TextBox1.AutoCompleteCustomSource = col
+        TextBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        TextBox1.AutoCompleteSource = AutoCompleteSource.CustomSource
+
+
+        Dim cmd1 As New SqlCommand("select distinct Sponsor_Award_Number from merged_data_table", conn)
+        Dim ds1 As New DataSet
+        Dim da1 As New SqlDataAdapter(cmd1)
+        Dim lst1 As New List(Of String)
+        Dim col1 As New AutoCompleteStringCollection
+        Try
+            Dim dr1 = cmd1.ExecuteReader()
+            While dr1.Read()
+                lst1.Add(dr1("Sponsor_Award_Number").ToString())
+            End While
+            dr1.Close()
+        Catch ex As SqlException
+            ' Do some logging or something. 
+            MessageBox.Show("There was an error accessing your data. DETAIL: " & ex.ToString())
+        End Try
+        col1.AddRange(lst1.ToArray)
+
+
+        TextBox2.AutoCompleteCustomSource = col1
+        TextBox2.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        TextBox2.AutoCompleteSource = AutoCompleteSource.CustomSource
+
+        Dim cmd2 As New SqlCommand("select distinct Sponsor_Type from merged_data_table", conn)
+        Dim ds2 As New DataSet
+        Dim da2 As New SqlDataAdapter(cmd2)
+        Dim lst2 As New List(Of String)
+        Dim col2 As New AutoCompleteStringCollection
+        Try
+            Dim dr2 = cmd2.ExecuteReader()
+            While dr2.Read()
+                lst2.Add(dr2("Sponsor_Type").ToString())
+            End While
+            dr2.Close()
+        Catch ex As SqlException
+            ' Do some logging or something. 
+            MessageBox.Show("There was an error accessing your data. DETAIL: " & ex.ToString())
+        End Try
+        col2.AddRange(lst2.ToArray)
+
+
+        TextBox3.AutoCompleteCustomSource = col2
+        TextBox3.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        TextBox3.AutoCompleteSource = AutoCompleteSource.CustomSource
+
+
+
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Me.Hide()
+        startup.Show()
+
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Me.Close()
+        Application.Exit()
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        'MsgBox(ComboBox1.Text)
+        Button6.Visible = True
+        DataGridView1.Visible = True
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "Select * from merged_data_table where PI_Name = @PIname"
+                cmd.Parameters.AddWithValue("@PIname", TextBox1.Text)
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        DataGridView1.Visible = True
+        Button6.Visible = True
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "Select * from merged_data_table where Sponsor_Award_Number = @SponsorAward"
+                cmd.Parameters.AddWithValue("@SponsorAward", TextBox2.Text)
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        DataGridView1.Visible = True
+        Button6.Visible = True
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "Select * from merged_data_table where Sponsor_Type = @SponsorType"
+                cmd.Parameters.AddWithValue("@SponsorType", TextBox3.Text)
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = cellValue
+                    End If
+                End If
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+End Class

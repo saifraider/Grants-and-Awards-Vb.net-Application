@@ -1,0 +1,389 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+Public Class MissingName
+    Dim connectionString As String
+    Dim Queryy As String
+
+
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+    Dim flag As Boolean = True
+    Private adap1 As New SqlDataAdapter
+    Private adap2 As New SqlDataAdapter
+    Private adap5 As New SqlDataAdapter
+    Private adap7 As New SqlDataAdapter
+    Private dt1 As New DataTable
+    Private dt2 As New DataTable
+    Private dt5 As New DataTable
+    Private dt7 As New DataTable
+
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
+    End Sub
+
+    Private Sub MissingName_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim connectionString As String = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+        Dim conn As New SqlConnection(connectionString)
+        Dim strSQL As String = "select distinct PI_name from merged_data_table Except (select distinct PI_name from grant_mapping union select distinct PI_name from Grant_Exception) order by PI_Name"
+        Dim da As New SqlDataAdapter(strSQL, conn)
+        Dim ds As New DataSet
+        da.Fill(ds, "Missing_Names")
+
+        With ComboBox1
+            .DataSource = ds.Tables("Missing_Names")
+            .DisplayMember = "PI_Name"
+            .ValueMember = ""
+            .SelectedIndex = 0
+        End With
+        With ComboBox6
+            .DataSource = ds.Tables("Missing_Names")
+            .DisplayMember = "PI_Name"
+            .ValueMember = ""
+            .SelectedIndex = 0
+        End With
+
+
+        strSQL = "select distinct Grant_Department from Almost_PI_Department_Mapping"
+        da = New SqlDataAdapter(strSQL, conn)
+        ds = New DataSet
+        da.Fill(ds, "Almost_PI_Department_Mapping")
+
+        With ComboBox2
+            .DataSource = ds.Tables("Almost_PI_Department_Mapping")
+            .DisplayMember = "Grant_Department"
+            .ValueMember = ""
+            .SelectedIndex = 0
+        End With
+
+
+
+
+
+
+
+
+        strSQL = "select distinct NIH_Department from Almost_PI_Department_Mapping"
+        da = New SqlDataAdapter(strSQL, conn)
+        ds = New DataSet
+        da.Fill(ds, "Almost_PI_Department_Mapping")
+
+        With ComboBox5
+            .DataSource = ds.Tables("Almost_PI_Department_Mapping")
+            .DisplayMember = "NIH_Department"
+            .ValueMember = ""
+            .SelectedIndex = 0
+        End With
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct PI_name from merged_data_table Except (select distinct PI_name from grant_mapping union select distinct PI_name from Grant_Exception) order by PI_Name"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct Grant_Department from Grant_Exception union select distinct Grant_department from Grant_mapping order by Grant_Department"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView4.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct Nih_Department from NIH_Exception union select distinct Nih_department from nih_mapping order by Nih_department"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView6.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+
+        DataGridView2.AllowUserToAddRows = True
+        DataGridView2.AllowUserToDeleteRows = True
+
+
+        'Dim cn As SqlConnection = New SqlConnection("Server=(local);Initial Catalog=CarlDemo;Integrated Security=SSPI;")
+        adap1 = New SqlDataAdapter("select * from grant_mapping", conn)
+        adap1.Fill(dt1)
+        DataGridView2.DataSource = dt1
+
+        DataGridView3.AllowUserToAddRows = True
+        DataGridView3.AllowUserToDeleteRows = True
+
+
+        'Dim cn As SqlConnection = New SqlConnection("Server=(local);Initial Catalog=CarlDemo;Integrated Security=SSPI;")
+        adap2 = New SqlDataAdapter("select * from nih_mapping", conn)
+        adap2.Fill(dt2)
+        DataGridView3.DataSource = dt2
+
+        DataGridView5.AllowUserToAddRows = True
+        DataGridView5.AllowUserToDeleteRows = True
+
+
+        'Dim cn As SqlConnection = New SqlConnection("Server=(local);Initial Catalog=CarlDemo;Integrated Security=SSPI;")
+        adap5 = New SqlDataAdapter("select * from grant_exception", conn)
+        adap5.Fill(dt5)
+        DataGridView5.DataSource = dt5
+
+        DataGridView7.AllowUserToAddRows = True
+        DataGridView7.AllowUserToDeleteRows = True
+
+
+        'Dim cn As SqlConnection = New SqlConnection("Server=(local);Initial Catalog=CarlDemo;Integrated Security=SSPI;")
+        adap7 = New SqlDataAdapter("select * from nih_exception", conn)
+        adap7.Fill(dt7)
+        DataGridView7.DataSource = dt7
+
+
+
+
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim PI_name As String = ComboBox1.Text.ToString
+        Dim Grant_dept As String = ComboBox2.Text.ToString
+        'Dim NIH_dept As String = ComboBox5.Text.ToString
+        If RadioButton1.Checked Then
+            Queryy = "INSERT INTO Grant_mapping Values (@PI_name,@Grant_dept)"
+        End If
+        If RadioButton2.Checked Then
+            Queryy = "INSERT INTO Grant_exception Values (@PI_name,@Grant_dept)"
+        End If
+        'Queryy = "INSERT INTO PI_Department_Mapping Values (@PI_name,@Grant_dept,@NIH_dept)"
+        If RadioButton1.Checked Or RadioButton2.Checked Then
+            If flag Then
+                Using conn As New SqlConnection(connectionString)
+                    Using comm As New SqlCommand()
+                        With comm
+                            .Connection = conn
+                            .CommandType = CommandType.Text
+                            .CommandText = Queryy
+                            .Parameters.AddWithValue("@PI_name", PI_name)
+                            .Parameters.AddWithValue("@Grant_dept", Grant_dept)
+
+
+                        End With
+
+                        Try
+                            conn.Open()
+                            comm.ExecuteNonQuery()
+                            MsgBox("Inserted")
+                            flag = False
+                        Catch ex As SqlException
+                            MessageBox.Show(ex.Message.ToString(), "Error Message")
+                        End Try
+                    End Using
+                End Using
+            End If
+        End If
+
+    End Sub
+
+    Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
+        flag = True
+    End Sub
+
+    Private Sub ComboBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox2.SelectedIndexChanged
+        flag = True
+    End Sub
+
+    Private Sub ComboBox3_SelectedIndexChanged(sender As Object, e As EventArgs)
+        flag = True
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                End If
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Me.Hide()
+        startup.Show()
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Application.Exit()
+
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim PI_name As String = ComboBox6.Text.ToString
+        Dim NIH_dept As String = ComboBox5.Text.ToString
+        'Dim NIH_dept As String = ComboBox5.Text.ToString
+        If RadioButton3.Checked Then
+            Queryy = "INSERT INTO NIh_mapping Values (@PI_name,@NIH_dept)"
+        End If
+        If RadioButton4.Checked Then
+            Queryy = "INSERT INTO NIh_exception Values (@PI_name,@NIH_dept)"
+        End If
+        'Queryy = "INSERT INTO PI_Department_Mapping Values (@PI_name,@Grant_dept,@NIH_dept)"
+        If RadioButton3.Checked Or RadioButton4.Checked Then
+            If flag Then
+                Using conn As New SqlConnection(connectionString)
+                    Using comm As New SqlCommand()
+                        With comm
+                            .Connection = conn
+                            .CommandType = CommandType.Text
+                            .CommandText = Queryy
+                            .Parameters.AddWithValue("@PI_name", PI_name)
+                            .Parameters.AddWithValue("@NIH_dept", NIH_dept)
+
+
+                        End With
+
+                        Try
+                            conn.Open()
+                            comm.ExecuteNonQuery()
+                            MsgBox("Inserted")
+                            flag = False
+                        Catch ex As SqlException
+                            MessageBox.Show(ex.Message.ToString(), "Error Message")
+                        End Try
+                    End Using
+                End Using
+            End If
+        End If
+
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+
+        Dim result As Integer = MessageBox.Show("Is the Data entered correct?", "caption", MessageBoxButtons.YesNoCancel)
+        If result = DialogResult.Cancel Then
+            MessageBox.Show("Cancel pressed")
+        ElseIf result = DialogResult.No Then
+            MessageBox.Show("No pressed")
+        ElseIf result = DialogResult.Yes Then
+            MessageBox.Show("Yes pressed")
+            Dim cmbd1 As New SqlCommandBuilder(adap1)
+            adap1.Update(dt1)
+            MsgBox("Changes Made")
+        End If
+
+
+    End Sub
+
+    Private Sub Button7_Click(sender As Object, e As EventArgs)
+        Dim result As Integer = MessageBox.Show("Is the Data entered correct?", "caption", MessageBoxButtons.YesNoCancel)
+        If result = DialogResult.Cancel Then
+            MessageBox.Show("Cancel pressed")
+        ElseIf result = DialogResult.No Then
+            MessageBox.Show("No pressed")
+        ElseIf result = DialogResult.Yes Then
+            MessageBox.Show("Yes pressed")
+            Dim cmbd1 As New SqlCommandBuilder(adap2)
+            adap2.Update(dt2)
+            MsgBox("Changes Made")
+        End If
+
+    End Sub
+
+    Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        Dim result As Integer = MessageBox.Show("Is the Data entered correct?", "caption", MessageBoxButtons.YesNoCancel)
+        If result = DialogResult.Cancel Then
+            MessageBox.Show("Cancel pressed")
+        ElseIf result = DialogResult.No Then
+            MessageBox.Show("No pressed")
+        ElseIf result = DialogResult.Yes Then
+            MessageBox.Show("Yes pressed")
+            Dim cmbd1 As New SqlCommandBuilder(adap5)
+            adap5.Update(dt5)
+            MsgBox("Changes Made")
+        End If
+
+    End Sub
+
+    Private Sub Button9_Click(sender As Object, e As EventArgs) Handles Button9.Click
+        Dim result As Integer = MessageBox.Show("Is the Data entered correct?", "caption", MessageBoxButtons.YesNoCancel)
+        If result = DialogResult.Cancel Then
+            MessageBox.Show("Cancel pressed")
+        ElseIf result = DialogResult.No Then
+            MessageBox.Show("No pressed")
+        ElseIf result = DialogResult.Yes Then
+            MessageBox.Show("Yes pressed")
+            Dim cmbd1 As New SqlCommandBuilder(adap7)
+            adap7.Update(dt7)
+            MsgBox("Changes Made")
+        End If
+
+    End Sub
+End Class

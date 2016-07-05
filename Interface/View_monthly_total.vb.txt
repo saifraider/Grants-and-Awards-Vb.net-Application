@@ -1,0 +1,257 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+
+Public Class View_monthly_total
+    Dim connectionString As String
+    Dim Queryy As String
+    Dim Queryy1 As String
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        startup.Show()
+        Me.Close()
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim strtdate As String
+        Dim enddate As String
+        strtdate = DateTimePicker1.Value.ToString("yyyy-MM-dd")
+        enddate = DateTimePicker2.Value.ToString("yyyy-MM-dd")
+        Label7.Visible = True
+        Label8.Visible = True
+
+        Queryy1 = "SELECT CONVERT(varchar, CAST(SUM(Current_Action_Amount) AS money), 1) FROM CleanDataView where Notice_Date between @noticestartdate and @noticeenddate"
+        If RadioButton1.Checked Then
+            Label7.Visible = True
+            Label8.Visible = True
+        End If
+
+        If RadioButton2.Checked Then
+            Dim department_parameter As String
+            Dim itemChecked As Object
+            Dim check As Integer
+            Dim check2 As Integer
+            Dim errorCheck() As String
+            Dim correct As String
+            Label7.Visible = False
+            Label8.Visible = False
+            DataGridView1.Visible = True
+            Button3.Visible = True
+            check2 = 0
+            correct = ""
+            department_parameter = "("
+            For Each itemChecked In CheckedListBox1.CheckedItems
+                check = 1
+                check2 = 0
+                If itemChecked.ToString.IndexOf("'") > 0 Then
+                    check2 = 1
+                    MsgBox(itemChecked.ToString)
+                    errorCheck = itemChecked.ToString.Split("'")
+                    For Each letter In errorCheck
+                        correct = correct + letter + "''"
+                    Next
+                    correct = correct.Substring(0, correct.LastIndexOf("''"))
+                End If
+                If check2 = 1 Then
+                    department_parameter = department_parameter + "'" + correct + "'" + ", "
+                Else
+                    department_parameter = department_parameter + "'" + itemChecked.ToString + "'" + ", "
+                End If
+            Next
+            If check = 1 Then
+
+                department_parameter = department_parameter.Substring(0, department_parameter.LastIndexOf(","))
+                department_parameter = " and Department in " + department_parameter + ")"
+                Queryy = "SELECT Department,CONVERT(varchar, CAST(SUM(Current_Action_Amount) AS money), 1) AS TotalCost FROM CleanDataView where Notice_Date between @noticestartdate and @noticeenddate"
+                'Queryy = Queryy + department_parameter
+                Queryy = Queryy + department_parameter + " group by Department"
+                'MsgBox(Queryy)
+
+
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        cmd.CommandText = Queryy
+                        cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                        cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                DataGridView1.DataSource = dt
+                            End Using
+                        End Using
+                    End Using
+                End Using
+
+            End If
+
+        End If
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = Queryy1
+                cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                cmd.CommandType = CommandType.Text
+
+                Try
+                    con.Open()
+                    Label8.Text = Convert.ToString(cmd.ExecuteScalar())
+                Catch ex As Exception
+                    Console.WriteLine(ex.Message)
+                End Try
+            End Using
+        End Using
+
+
+
+    End Sub
+
+    Private Sub View_monthly_total_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+        Using con As New SqlConnection(connectionString)
+            Dim cmd As New SqlCommand("select CONVERT(varchar, CAST(SUM(Current_Action_Amount) AS money), 1) from CleanDataView", con)
+            Try
+                con.Open()
+                Label5.Text = Convert.ToString(cmd.ExecuteScalar())
+            Catch ex As Exception
+                Console.WriteLine(ex.Message)
+            End Try
+        End Using
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct Department from CleanDataView order by Department"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        If dt.Rows.Count > 0 Then
+                            For i As Integer = 0 To dt.Rows.Count - 1
+                                CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Department")), False)
+                            Next
+                        End If
+
+                    End Using
+                End Using
+            End Using
+        End Using
+
+    End Sub
+
+    Private Sub Label6_Click(sender As Object, e As EventArgs) Handles Label6.Click
+
+    End Sub
+
+    Private Sub Label5_Click(sender As Object, e As EventArgs) Handles Label5.Click
+
+    End Sub
+
+    Private Sub RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton1.CheckedChanged
+        If RadioButton1.Checked Then
+            CheckedListBox1.Visible = False
+            CheckBox1.Visible = False
+            DataGridView1.Visible = False
+            Button3.Visible = False
+
+        End If
+    End Sub
+
+    Private Sub RadioButton2_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton2.CheckedChanged
+        If RadioButton2.Checked Then
+            CheckedListBox1.Visible = True
+            CheckBox1.Visible = True
+            Label7.Visible = False
+            Label8.Visible = False
+            Button3.Visible = False
+        End If
+    End Sub
+
+    Private Sub Label8_Click(sender As Object, e As EventArgs) Handles Label8.Click
+
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        If CheckBox1.Checked Then
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        ' Start Excel and get Application object.
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            'MsgBox("1" + "-" + (column.Index + 1).ToString)
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+
+                Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                If cellValue Is Nothing Then
+                    shXL.Cells(r + 1, c + 1).Value = " "
+                    'MsgBox("entered")
+
+                Else
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    'MsgBox(cellValue.ToString)
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                End If
+
+
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+End Class

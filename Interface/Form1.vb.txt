@@ -1,0 +1,771 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+
+Public Class Form1
+    Inherits System.Windows.Forms.Form
+    'Create ADO.NET objects.
+    Dim connectionString As String = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+    Dim Queryy As String
+    Dim Queryy1 As String
+    Dim Queryy2 As String
+
+
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+        Dim selection_parameter As String
+        Dim itemChecked123 As Object
+        selection_parameter = ""
+
+
+        Dim strtdate As String
+        Dim enddate As String
+
+        strtdate = DateTimePicker1.Value.ToString("yyyy-MM-dd")
+        enddate = DateTimePicker2.Value.ToString("yyyy-MM-dd")
+
+        If DateTimePicker1.Value > DateTimePicker2.Value Then
+            MsgBox("End Date cannot be smaller than start date")
+            Return
+        End If
+
+        If CheckedListBox4.CheckedItems.Count < 1 Then
+            MsgBox("You must check at least one item in selection Parameter.")
+            Return
+        End If
+        If CheckedListBox1.CheckedItems.Count < 1 Then
+            MsgBox("You must check at least one item in Department Parameter.")
+            Return
+        End If
+        If CheckedListBox2.CheckedItems.Count < 1 Then
+            MsgBox("You must check at least one item in Transaction Parameter.")
+            Return
+        End If
+        If CheckedListBox3.CheckedItems.Count < 1 Then
+            MsgBox("You must check at least one item in Sponsor Parameter.")
+            Return
+        End If
+
+        For Each itemChecked123 In CheckedListBox4.CheckedItems
+            If itemChecked123.ToString.Equals("Department") Then
+                If RadioButton1.Checked Then
+                    selection_parameter = selection_parameter + "Grant_department" + ","
+                End If
+                If RadioButton2.Checked Then
+                    selection_parameter = selection_parameter + "NIH_department" + ","
+                End If
+
+            Else
+                selection_parameter = selection_parameter + itemChecked123.ToString + ","
+            End If
+        Next
+        selection_parameter = selection_parameter.Substring(0, selection_parameter.LastIndexOf(","))
+
+        'MsgBox(selection_parameter)
+
+
+        'Queryy = "SELECT * FROM CleanData123 where Notice_Date between @noticestartdate and @noticeenddate"
+
+        'Queryy = "SELECT * FROM CleanData123 cd where cd.Notice_Date between @noticestartdate and @noticeenddate"
+
+        'Queryy1 = "select * from (select cd.Sponsor_Award_Number, cd.Account_Number,cd.KC_Award_Number ,cd.Document_Number,cd.KC_Award_Version , cd.PCR_ID , cd.Award_Status, cd.Award_Type, cd.Activity_Type,cd.Transaction_Type ,cd.Current_Action_Amount, cd.Direct_Cost, cd.Indirect_Direct_Cost,cd.Notice_Date,cd.Project_Title,cd.School, dm.Grant_Department, cd.PI_Person_ID, cd.PI_Name,cd.Number_of_COPI,cd.Sponsor_Code,cd.Sponsor_Acronym , cd.Sponsor_Name,cd.Sponsor_Type ,cd.Prime_Sponsor_Code,cd.Prime_Sponsor_Acronym,cd.Prime_Sponsor_Name, cd.Project_Start_Date , cd.Current_Period_End_Date,cd.Project_End_Date,cd.Anticipated_Total,cd.Obligated_Amount_To_Date,cd.On_Campus_Rate,cd.Off_Campus_Rate  from cleandata123 cd inner join Grant_Mapping dm on cd.PI_Name = dm.PI_Name and cd.PI_Name in ( select PI_Name from Grant_mapping "
+        If RadioButton1.Checked Then
+            Queryy1 = "select " + selection_parameter + " from ( select c.Sponsor_Award_Number, c.Account_Number,c.KC_Award_Number, c.Document_Number,c.KC_Award_Version, c.PCR_ID, c.Award_Status,c.Award_Type,c.Activity_Type,c.Transaction_Type ,c2.amount As Current_Action_Amount, c2.dc as Direct_Cost, c2.dd as Indirect_direct_cost, c.Notice_Date, c.Project_Title,c.School, gm.Grant_Department,c.PI_Person_ID,c.PI_Name,c.Number_of_COPI,c.Sponsor_Code,c.Sponsor_Acronym,c.Sponsor_Name,c.Sponsor_Type,c.Prime_Sponsor_Code,c.Prime_Sponsor_Acronym,c.Prime_Sponsor_Name,c.Project_Start_Date,c.Current_Period_End_Date,c.Project_End_Date, c.Anticipated_Total, c.Obligated_Amount_To_Date,c.On_Campus_Rate,c.Off_Campus_Rate,c.Max_Account_Number,c.Co_PI_Name,c.Document_Finalized_Date from merged_data_table c inner join ( select Sponsor_Award_Number, Account_Number  ,max(Notice_Date) as max_date,sum(Current_Action_Amount) as amount,sum(Direct_Cost) as dc ,sum(Indirect_Direct_Cost) as dd from merged_data_table where Notice_Date between @noticestartdate and @noticeenddate group by Sponsor_Award_Number, Account_Number ) c2 on c2.sponsor_award_number = c.sponsor_award_number and c2.Account_Number = c.Account_Number  and c2.max_date = c.notice_date inner join Grant_mapping gm on c.PI_Name = gm.PI_Name and gm.Grant_Department in "
+            Queryy2 = "select c.Sponsor_Award_Number, c.Account_Number,c.KC_Award_Number, c.Document_Number,c.KC_Award_Version, c.PCR_ID, c.Award_Status,c.Award_Type,c.Activity_Type,c.Transaction_Type ,c2.amount As Current_Action_Amount, c2.dc as Direct_Cost, c2.dd as Indirect_direct_cost, c.Notice_Date, c.Project_Title,c.School, gm.Grant_Department,c.PI_Person_ID,c.PI_Name,c.Number_of_COPI,c.Sponsor_Code,c.Sponsor_Acronym,c.Sponsor_Name,c.Sponsor_Type,c.Prime_Sponsor_Code,c.Prime_Sponsor_Acronym,c.Prime_Sponsor_Name,c.Project_Start_Date,c.Current_Period_End_Date,c.Project_End_Date, c.Anticipated_Total, c.Obligated_Amount_To_Date,c.On_Campus_Rate,c.Off_Campus_Rate,c.Max_Account_Number,c.Co_PI_Name,c.Document_Finalized_Date from merged_data_table c inner join ( select Sponsor_Award_Number, Account_Number , max(Notice_Date) as max_date,sum(Current_Action_Amount) as amount,sum(Direct_Cost) as dc ,sum(Indirect_Direct_Cost) as dd from merged_data_table where Notice_Date between @noticestartdate and @noticeenddate group by Sponsor_Award_Number,Account_Number ) c2 on c2.sponsor_award_number = c.sponsor_award_number and c2.Account_Number = c.Account_Number  and c2.max_date = c.notice_date inner join Grant_exception gm on c.PI_Name = gm.PI_Name and gm.Grant_Department= c.Department and  gm.Grant_Department in "
+        End If
+
+        If RadioButton2.Checked Then
+            Queryy1 = "select " + selection_parameter + " from ( select c.Sponsor_Award_Number, c.Account_Number,c.KC_Award_Number, c.Document_Number,c.KC_Award_Version, c.PCR_ID, c.Award_Status,c.Award_Type,c.Activity_Type,c.Transaction_Type ,c2.amount As Current_Action_Amount, c2.dc as Direct_Cost, c2.dd as Indirect_direct_cost, c.Notice_Date, c.Project_Title,c.School, gm.NIH_Department,c.PI_Person_ID,c.PI_Name,c.Number_of_COPI,c.Sponsor_Code,c.Sponsor_Acronym,c.Sponsor_Name,c.Sponsor_Type,c.Prime_Sponsor_Code,c.Prime_Sponsor_Acronym,c.Prime_Sponsor_Name,c.Project_Start_Date,c.Current_Period_End_Date,c.Project_End_Date, c.Anticipated_Total, c.Obligated_Amount_To_Date,c.On_Campus_Rate,c.Off_Campus_Rate,c.Max_Account_Number,c.Co_PI_Name,c.Document_Finalized_Date from merged_data_table c inner join ( select Sponsor_Award_Number, Account_Number  ,max(Notice_Date) as max_date,sum(Current_Action_Amount) as amount,sum(Direct_Cost) as dc ,sum(Indirect_Direct_Cost) as dd from merged_data_table where Notice_Date between @noticestartdate and @noticeenddate group by Sponsor_Award_Number, Account_Number ) c2 on c2.sponsor_award_number = c.sponsor_award_number and c2.Account_Number = c.Account_Number  and c2.max_date = c.notice_date inner join NIH_mapping gm on c.PI_Name = gm.PI_Name and gm.NIH_Department in "
+            Queryy2 = "select c.Sponsor_Award_Number, c.Account_Number,c.KC_Award_Number, c.Document_Number,c.KC_Award_Version, c.PCR_ID, c.Award_Status,c.Award_Type,c.Activity_Type,c.Transaction_Type ,c2.amount As Current_Action_Amount, c2.dc as Direct_Cost, c2.dd as Indirect_direct_cost, c.Notice_Date, c.Project_Title,c.School, gm.NIH_Department,c.PI_Person_ID,c.PI_Name,c.Number_of_COPI,c.Sponsor_Code,c.Sponsor_Acronym,c.Sponsor_Name,c.Sponsor_Type,c.Prime_Sponsor_Code,c.Prime_Sponsor_Acronym,c.Prime_Sponsor_Name,c.Project_Start_Date,c.Current_Period_End_Date,c.Project_End_Date, c.Anticipated_Total, c.Obligated_Amount_To_Date,c.On_Campus_Rate,c.Off_Campus_Rate,c.Max_Account_Number,c.Co_PI_Name,c.Document_Finalized_Date from merged_data_table c inner join ( select Sponsor_Award_Number, Account_Number , max(Notice_Date) as max_date,sum(Current_Action_Amount) as amount,sum(Direct_Cost) as dc ,sum(Indirect_Direct_Cost) as dd from merged_data_table where Notice_Date between @noticestartdate and @noticeenddate group by Sponsor_Award_Number,Account_Number ) c2 on c2.sponsor_award_number = c.sponsor_award_number and c2.Account_Number = c.Account_Number  and c2.max_date = c.notice_date inner join NIH_exception gm on c.PI_Name = gm.PI_Name and gm.NIH_Department= c.Department and  gm.NIH_Department in "
+        End If
+        'Queryy2 = "select cd.Sponsor_Award_Number, cd.Account_Number,cd.KC_Award_Number ,cd.Document_Number,cd.KC_Award_Version , cd.PCR_ID , cd.Award_Status, cd.Award_Type, cd.Activity_Type,cd.Transaction_Type ,cd.Current_Action_Amount, cd.Direct_Cost, cd.Indirect_Direct_Cost,cd.Notice_Date,cd.Project_Title,cd.School, dm.Grant_Department, cd.PI_Person_ID, cd.PI_Name,cd.Number_of_COPI,cd.Sponsor_Code,cd.Sponsor_Acronym , cd.Sponsor_Name,cd.Sponsor_Type ,cd.Prime_Sponsor_Code,cd.Prime_Sponsor_Acronym,cd.Prime_Sponsor_Name, cd.Project_Start_Date , cd.Current_Period_End_Date,cd.Project_End_Date,cd.Anticipated_Total,cd.Obligated_Amount_To_Date,cd.On_Campus_Rate,cd.Off_Campus_Rate  from cleandata123 cd inner join Grant_exception dm on cd.PI_Name = dm.PI_Name and cd.Department = dm.Grant_Department and cd.PI_Name in ( select PI_Name from Grant_exception"
+
+        'MsgBox(strtdate)
+
+
+
+        Dim department_parameter As String
+        Dim itemChecked1 As Object
+        Dim check1 As Integer
+        Dim check21 As Integer
+        Dim correct1 As String
+        Dim errorCheck1() As String
+        check21 = 0
+        correct1 = ""
+
+        department_parameter = "("
+        For Each itemChecked1 In CheckedListBox1.CheckedItems
+            check1 = 1
+            check21 = 0
+            If itemChecked1.ToString.IndexOf("'") > 0 Then
+                check21 = 1
+                'MsgBox(itemChecked1.ToString)
+                errorCheck1 = itemChecked1.ToString.Split("'")
+                For Each letter In errorCheck1
+                    correct1 = correct1 + letter + "''"
+                Next
+                correct1 = correct1.Substring(0, correct1.LastIndexOf("''"))
+            End If
+            If check21 = 1 Then
+                department_parameter = department_parameter + "'" + correct1 + "'" + ", "
+            Else
+                department_parameter = department_parameter + "'" + itemChecked1.ToString + "'" + ", "
+            End If
+
+        Next
+        If check1 = 1 Then
+
+            department_parameter = department_parameter.Substring(0, department_parameter.LastIndexOf(","))
+            'department_parameter = " and Department in " + department_parameter + ")"
+            'department_parameter = " dm.Grant_Department in " + department_parameter + "))"
+            department_parameter = department_parameter + ")"
+            'MsgBox(department_parameter.ToString)
+
+            'Queryy = Queryy + department_parameter
+            'Queryy = Queryy + " and cd.PI_Name in (select distinct dm.PI_Name from Almost_PI_Department_Mapping dm where " + department_parameter
+            'MsgBox(Queryy)
+
+            'Queryy1 = Queryy1 + department_parameter + " ) "
+            Queryy1 = Queryy1 + department_parameter + " "
+            Queryy2 = Queryy2 + department_parameter + " ) dtt"
+            'Queryy2 = Queryy2 + department_parameter + " )) dt"
+            Queryy = Queryy1 + " Union " + Queryy2
+
+            Dim transaction_parameter As String
+            Dim itemChecked As Object
+            Dim check As Integer
+            Dim check2 As Integer
+            Dim correct As String
+            Dim errorCheck() As String
+            check2 = 0
+            correct = ""
+            transaction_parameter = "("
+            For Each itemChecked In CheckedListBox2.CheckedItems
+                check = 1
+                check2 = 0
+                If itemChecked.ToString.IndexOf("'") > 0 Then
+                    check2 = 1
+                    'MsgBox(itemChecked.ToString)
+                    errorCheck = itemChecked.ToString.Split("'")
+                    For Each letter In errorCheck
+                        correct = correct + letter + "''"
+                    Next
+                    correct = correct.Substring(0, correct.LastIndexOf("''"))
+                End If
+                If check2 = 1 Then
+                    transaction_parameter = transaction_parameter + "'" + correct + "'" + ", "
+                Else
+                    transaction_parameter = transaction_parameter + "'" + itemChecked.ToString + "'" + ", "
+                End If
+
+
+            Next
+
+            If check = 1 Then
+                transaction_parameter = transaction_parameter.Substring(0, transaction_parameter.LastIndexOf(","))
+                'transaction_parameter = " and cd.Transaction_type in " + transaction_parameter + ")"
+                'Queryy = Queryy + transaction_parameter
+                transaction_parameter = transaction_parameter + ")"
+                'MsgBox(transaction_parameter)
+            End If
+
+            Dim sponsor_parameter As String
+
+            Dim check3 As Integer
+            Dim check23 As Integer
+
+            Dim errorCheck3() As String
+            check23 = 0
+            correct = ""
+            sponsor_parameter = "("
+            For Each itemChecked In CheckedListBox3.CheckedItems
+                check3 = 1
+                check23 = 0
+                If itemChecked.ToString.IndexOf("'") > 0 Then
+                    check23 = 1
+                    'MsgBox(itemChecked.ToString)
+                    errorCheck3 = itemChecked.ToString.Split("'")
+                    For Each letter In errorCheck3
+                        correct = correct + letter + "''"
+                    Next
+                    correct = correct.Substring(0, correct.LastIndexOf("''"))
+                End If
+                If check23 = 1 Then
+                    sponsor_parameter = sponsor_parameter + "'" + correct + "'" + ", "
+                Else
+                    sponsor_parameter = sponsor_parameter + "'" + itemChecked.ToString + "'" + ", "
+                End If
+
+
+            Next
+
+            If check3 = 1 Then
+                sponsor_parameter = sponsor_parameter.Substring(0, sponsor_parameter.LastIndexOf(","))
+                'sponsor_parameter = " and cd.Transaction_type in " + sponsor_parameter + ")"
+                'Queryy = Queryy + sponsor_parameter
+                sponsor_parameter = sponsor_parameter + ")"
+                'MsgBox(sponsor_parameter)
+            End If
+
+
+            If RadioButton3.Checked Then
+                Queryy = Queryy + " Where account_number like '51%' and "
+            End If
+
+            If RadioButton4.Checked Then
+                Queryy = Queryy + " Where account_number not like '51%' and "
+            End If
+
+            If RadioButton5.Checked Then
+
+                Queryy = Queryy + " where "
+            End If
+
+            Queryy = Queryy + " transaction_type in " + transaction_parameter + "and sponsor_type in " + sponsor_parameter + " order by sponsor_award_number"
+        End If
+
+
+
+
+
+
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                MsgBox(Queryy)
+
+                cmd.CommandText = Queryy
+                cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+
+
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString = "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct Transaction_Type from merged_data_table order by Transaction_type"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        If dt.Rows.Count > 0 Then
+                            For i As Integer = 0 To dt.Rows.Count - 1
+                                CheckedListBox2.Items.Add(CStr(dt.Rows(i).Item("Transaction_Type")), False)
+                            Next
+                        End If
+
+                    End Using
+                End Using
+            End Using
+
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select distinct Sponsor_Type from merged_data_table order by Sponsor_Type"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        If dt.Rows.Count > 0 Then
+                            For i As Integer = 0 To dt.Rows.Count - 1
+                                CheckedListBox3.Items.Add(CStr(dt.Rows(i).Item("Sponsor_Type")), False)
+                            Next
+                        End If
+
+                    End Using
+                End Using
+            End Using
+
+
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "SELECT COLUMN_NAME FROM research.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'merged_data_table' and column_name <> 'dept_original'"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        If dt.Rows.Count > 0 Then
+                            For i As Integer = 0 To dt.Rows.Count - 1
+                                CheckedListBox4.Items.Add(CStr(dt.Rows(i).Item("COLUMN_NAME")), False)
+                            Next
+                        End If
+
+                    End Using
+                End Using
+            End Using
+
+        End Using
+
+
+
+    End Sub
+
+    Private Sub RadioButton3_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton3.CheckedChanged
+        If RadioButton3.Checked Then
+            CheckBox1.Checked = False
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from Cleandata123 where Department Like '%Trials' order by Department"
+                        cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.Grant_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department Like '%Trials' order by NIH_Department"
+                        cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.NIH_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+    End Sub
+
+    Private Sub RadioButton4_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton4.CheckedChanged
+        If RadioButton4.Checked Then
+            CheckBox1.Checked = False
+
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from cleandata123 where Department not Like '%Trials' order by department"
+                        cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.Grant_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department not Like '%Trials' order by NIH_Department"
+                        cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.NIH_Department"
+
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+    End Sub
+
+    Private Sub RadioButton5_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton5.CheckedChanged
+        If RadioButton5.Checked Then
+            If RadioButton1.Checked Then
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        'cmd.CommandText = "Select distinct Department from cleandata123 order by department"
+                        cmd.CommandText = "Select distinct Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dd order by Grant_Department"
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            Else
+                CheckedListBox1.Items.Clear()
+                Using con As New SqlConnection(connectionString)
+                    Using cmd As SqlCommand = con.CreateCommand()
+                        cmd.CommandText = "Select distinct NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dd order by NIH_Department"
+                        cmd.CommandType = CommandType.Text
+                        Using sda As New SqlDataAdapter(cmd)
+                            Using dt As New DataTable()
+                                sda.Fill(dt)
+                                If dt.Rows.Count > 0 Then
+                                    For i As Integer = 0 To dt.Rows.Count - 1
+                                        CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                    Next
+                                End If
+
+                            End Using
+                        End Using
+                    End Using
+                End Using
+            End If
+        End If
+    End Sub
+
+    Private Sub RadioButton6_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton6.CheckedChanged
+
+    End Sub
+
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        If CheckBox1.Checked Then
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox1.Items.Count - 1
+                CheckedListBox1.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+
+    Private Sub CheckBox2_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox2.CheckedChanged
+        If CheckBox2.Checked Then
+            For i = 0 To CheckedListBox2.Items.Count - 1
+                CheckedListBox2.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox2.Items.Count - 1
+                CheckedListBox2.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs)
+        Application.Exit()
+    End Sub
+
+
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        startup.Show()
+        Me.Close()
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        ' Start Excel and get Application object.
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            shXL.Cells(1, column.Index + 1).Columns.AutoFit()
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = "" + cellValue + ""
+                    End If
+
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Date Then
+
+                    Dim cellValue As Date = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                    shXL.Cells(r + 1, c + 1).Alignment = Left
+
+                ElseIf TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Decimal Then
+                    'shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Decimal = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+
+                ElseIf TypeOf (dgv.rows(r - 1).cells(c).value) Is Double Then
+                    'shxl.cells(r + 1, c + 1).numberformat = "@"
+                    Dim cellvalue As Double = dgv.Rows(r - 1).Cells(c).Value
+                    'msgbox(cellvalue.tostring + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).value = cellvalue
+
+
+                End If
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Button3_Click_1(sender As Object, e As EventArgs) Handles Button3.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub RadioButton1_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton1.CheckedChanged
+        If RadioButton3.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 where Department Like '%Trials' order by Department"
+                    cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.Grant_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton4.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 where Department not Like '%Trials' order by department"
+                    cmd.CommandText = "Select distinct dm.Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.Grant_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton5.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct Department from Cleandata123 order by department"
+                    cmd.CommandText = "Select distinct Grant_Department from (select distinct Grant_department,PI_name from grant_mapping union select distinct Grant_department,PI_Name from grant_exception) dd order by Grant_Department"
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("Grant_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+    End Sub
+
+    Private Sub RadioButton2_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton2.CheckedChanged
+        If RadioButton3.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department Like '%Trials' order by NIH_Department"
+                    cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number Like '51%' order by dm.NIH_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton4.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    'cmd.CommandText = "Select distinct NIH_Department from Almost_PI_Department_Mapping where NIH_Department not Like '%Trials' order by NIH_Department"
+                    cmd.CommandText = "Select distinct dm.NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dm inner join merged_data_table cd On cd.PI_Name = dm.PI_Name And  cd.Account_Number not Like '51%' order by dm.NIH_Department"
+
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+        If RadioButton5.Checked Then
+            CheckedListBox1.Items.Clear()
+            Using con As New SqlConnection(connectionString)
+                Using cmd As SqlCommand = con.CreateCommand()
+                    cmd.CommandText = "Select distinct NIH_Department from (select distinct nih_department,PI_name from nih_mapping union select distinct nih_department,PI_Name from nih_exception) dd order by NIH_Department"
+                    cmd.CommandType = CommandType.Text
+                    Using sda As New SqlDataAdapter(cmd)
+                        Using dt As New DataTable()
+                            sda.Fill(dt)
+                            If dt.Rows.Count > 0 Then
+                                For i As Integer = 0 To dt.Rows.Count - 1
+                                    CheckedListBox1.Items.Add(CStr(dt.Rows(i).Item("NIH_Department")), False)
+                                Next
+                            End If
+
+                        End Using
+                    End Using
+                End Using
+            End Using
+        End If
+    End Sub
+
+    Private Sub RadioButton7_CheckedChanged(sender As Object, e As EventArgs) Handles RadioButton7.CheckedChanged
+
+    End Sub
+
+    Private Sub CheckBox3_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox3.CheckedChanged
+        If CheckBox3.Checked Then
+            For i = 0 To CheckedListBox3.Items.Count - 1
+                CheckedListBox3.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox3.Items.Count - 1
+                CheckedListBox3.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+
+    Private Sub CheckBox4_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox4.CheckedChanged
+        If CheckBox4.Checked Then
+            For i = 0 To CheckedListBox4.Items.Count - 1
+                CheckedListBox4.SetItemChecked(i, True)
+            Next
+        Else
+            For i = 0 To CheckedListBox4.Items.Count - 1
+                CheckedListBox4.SetItemChecked(i, False)
+            Next
+        End If
+    End Sub
+
+    Private Sub CheckedListBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CheckedListBox1.SelectedIndexChanged
+
+    End Sub
+End Class

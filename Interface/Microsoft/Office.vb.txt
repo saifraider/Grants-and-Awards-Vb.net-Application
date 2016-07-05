@@ -1,0 +1,21 @@
+﻿Namespace Microsoft
+    Friend Class Office
+        Friend Class Interop
+            Friend Class Excel
+                Friend Class Application
+                    Friend Workbooks As Object
+                End Class
+
+                Friend Class ApplicationClass
+                    Inherits Application
+                End Class
+
+                Friend Class Workbook
+                End Class
+
+                Friend Class Worksheet
+                End Class
+            End Class
+        End Class
+    End Class
+End Namespace

@@ -1,0 +1,270 @@
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.IO.Directory
+Imports Excel = Microsoft.Office.Interop.Excel
+Public Class View_department_total
+    Dim connectionString As String
+    Dim Queryy As String
+    Dim APP As New Excel.Application
+    Dim worksheet As Excel.Worksheet
+    Dim workbook As Excel.Workbook
+    Dim misValue As Object = System.Reflection.Missing.Value
+    Dim excelLocation As String = "U:\temp\123.xlsx"
+
+    Dim appXL As Excel.Application
+    Dim wbXl As Excel.Workbook
+    Dim shXL As Excel.Worksheet
+    Dim raXL As Excel.Range
+
+
+    Private Sub DateTimePicker1_ValueChanged(sender As Object, e As EventArgs)
+
+    End Sub
+
+    Private Sub View_department_total_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        connectionString= "Data Source=123.345.56.678;Initial Catalog=research;User ID=Saif;Password=yourpassword”
+        'DateTimePicker1.Format = DateTimePickerFormat.Custom
+        'DateTimePicker1.CustomFormat = "MMM/yyyy"
+        DataGridView1.AutoResizeColumns()
+
+
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = "select Sponsor_Type, count(Sponsor_Type) as Total from CleanData123 group by Sponsor_Type;"
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView2.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+        DataGridView2.AutoResizeColumns()
+        DataGridView1.AutoResizeColumns()
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs)
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs)
+
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+
+        ' Start Excel and get Application object.
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView1
+
+        Dim i As Integer
+        i = 0
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        For Each column In DataGridView1.Columns
+            'MsgBox(column.Name.ToString)
+            'MsgBox("1" + "-" + (column.Index + 1).ToString)
+
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+            i = i + 1
+        Next
+
+
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+
+                Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+
+                If cellValue Is Nothing Then
+                    shXL.Cells(r + 1, c + 1).Value = " "
+                    'MsgBox("entered")
+
+                Else
+                    'MsgBox(cellValue.ToString)
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                End If
+
+
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+    End Sub
+
+    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+
+        ' Start Excel and get Application object.
+        appXL = CreateObject("Excel.Application")
+        appXL.Visible = True
+        ' Add a new workbook.
+        wbXl = appXL.Workbooks.Add
+        shXL = wbXl.ActiveSheet
+        ' Add table headers going cell by cell.
+        Dim dgv As DataGridView = DataGridView2
+
+
+        Dim columnsCount As Integer = DataGridView2.Columns.Count
+        For Each column In DataGridView2.Columns
+            'MsgBox(column.Name.ToString)
+
+            shXL.Cells(1, column.Index + 1).Value = column.Name.ToString
+            shXL.Cells(1, column.Index + 1).Font.Bold = True
+
+        Next
+
+
+
+        For r As Integer = 1 To dgv.RowCount
+            'Dim r As DataGridViewRow = dgv.Rows(r)
+            For c As Integer = 0 To dgv.ColumnCount - 1
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is String Then
+                    Dim cellValue As String = TryCast(dgv.Rows(r - 1).Cells(c).Value, String)
+                    If cellValue Is Nothing Then
+                        'MsgBox("empty")
+
+                        shXL.Cells(r + 1, c + 1).Value = " "
+                        'MsgBox("entered")
+
+                    Else
+                        'MsgBox(cellValue + "<--- string")
+                        shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                        shXL.Cells(r + 1, c + 1).Value = cellValue
+                    End If
+                End If
+
+                If TypeOf (dgv.Rows(r - 1).Cells(c).Value) Is Int32 Then
+                    shXL.Cells(r + 1, c + 1).NumberFormat = "@"
+                    Dim cellValue As Integer = dgv.Rows(r - 1).Cells(c).Value
+                    'MsgBox(cellValue.ToString + "<--- integere")
+                    shXL.Cells(r + 1, c + 1).Value = cellValue
+                End If
+
+
+
+
+
+
+            Next
+        Next
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+        appXL.Visible = True
+        appXL.UserControl = True
+        ' Release object references.
+        raXL = Nothing
+        shXL = Nothing
+        wbXl = Nothing
+        appXL.Quit()
+        appXL = Nothing
+        Exit Sub
+Err_Handler:
+        MsgBox(Err.Description, vbCritical, "Error: " & Err.Number)
+        'MsgBox("hello")
+
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        startup.Show()
+        Me.Close()
+    End Sub
+
+    Private Sub Button2_Click_1(sender As Object, e As EventArgs) Handles Button2.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+
+        Me.Chart1.Series("Amount").Points.Clear()
+        Dim Queryy As String = ""
+
+
+        Dim strtdate As String
+        Dim enddate As String
+
+        strtdate = DateTimePicker1.Value.ToString("yyyy-MM-dd")
+        enddate = DateTimePicker2.Value.ToString("yyyy-MM-dd")
+
+        If DateTimePicker1.Value > DateTimePicker2.Value Then
+            MsgBox("End Date cannot be smaller than start date")
+            Return
+        End If
+
+        If RadioButton1.Checked Then
+            Queryy = "select Grant_Department, CONVERT(varchar, CAST(SUM(Total) AS money), 1) As Total from ( select gm.Grant_Department, SUM(md.Current_Action_Amount) As Total from grant_mapping gm inner join merged_data_table md on gm.PI_name = md.PI_name and md.notice_date between @noticestartdate and @noticeenddate group by gm.Grant_Department UNION select gm.Grant_Department, SUM(md.Current_Action_Amount) As Total from Grant_Exception gm inner join merged_data_table md on gm.PI_name = md.PI_name and gm.Grant_Department=md.Department and md.notice_date between @noticestartdate and @noticeenddate group by gm.Grant_Department) cd group by Grant_department"
+
+        End If
+
+        If RadioButton2.Checked Then
+            Queryy = "select NIH_Department, CONVERT(varchar, CAST(SUM(Total) AS money), 1) As Total from ( select gm.NIH_Department, SUM(md.Current_Action_Amount) As Total from NIH_mapping gm inner join merged_data_table md on gm.PI_name = md.PI_name and md.notice_date between @noticestartdate and @noticeenddate group by gm.NIH_Department UNION select gm.NIH_Department, SUM(md.Current_Action_Amount) As Total from NIh_exception gm inner join merged_data_table md on gm.PI_name = md.PI_name and gm.NIH_Department=md.Department and md.notice_date between @noticestartdate and @noticeenddate group by gm.NIH_Department) cd group by NIH_Department"
+        End If
+
+        Using con As New SqlConnection(connectionString)
+            Using cmd As SqlCommand = con.CreateCommand()
+                cmd.CommandText = Queryy
+                cmd.Parameters.AddWithValue("@noticestartdate", strtdate)
+                cmd.Parameters.AddWithValue("@noticeenddate", enddate)
+                cmd.CommandType = CommandType.Text
+                Using sda As New SqlDataAdapter(cmd)
+                    Using dt As New DataTable()
+                        sda.Fill(dt)
+                        DataGridView1.DataSource = dt
+                    End Using
+                End Using
+            End Using
+        End Using
+
+        DataGridView1.Visible = True
+        Chart1.Visible = True
+        Button6.Visible = True
+        Button3.Visible = True
+        Dim dgv As DataGridView = DataGridView1
+        Dim columnsCount As Integer = DataGridView1.Columns.Count
+        Dim sum As Integer = 0
+
+        For r As Integer = 1 To dgv.RowCount
+
+            Dim Xvalue As String = TryCast(dgv.Rows(r - 1).Cells(0).Value, String)
+            Dim YValue As Decimal = dgv.Rows(r - 1).Cells(1).Value
+            sum = sum + YValue
+            Me.Chart1.Series("Amount").Points.AddXY(Xvalue, YValue)
+
+
+        Next
+        Chart1.Series("Amount").ToolTip = " Department = #VALX" & vbCrLf & "Amount = #VALY{C}"
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        Dim folderDlg As New FolderBrowserDialog
+        folderDlg.ShowDialog()
+        Dim path As String
+        path = folderDlg.SelectedPath
+        'MsgBox(path.ToString)
+        Chart1.SaveImage(path + "\Department_Report.png", System.Drawing.Imaging.ImageFormat.Png)
+    End Sub
+End Class
